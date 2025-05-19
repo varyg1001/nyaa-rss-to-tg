@@ -182,7 +182,7 @@ func getRSSFeed(mainConfig MainConfig) (RSS, error) {
 		tls_client.WithClientProfile(profiles.Chrome_124),
 	}
 
-	if len(mainConfig.Proxies) == 0 {
+	if len(mainConfig.Proxies) > 1 {
 		proxy := getRandomProxy(mainConfig.Proxies)
 		options = append(options, tls_client.WithProxyUrl(proxy))
 	}
@@ -233,6 +233,8 @@ func main() {
 		}
 	}
 
+	log.Println("Bot started")
+
 	for {
 		rss, err := getRSSFeed(mainConfig)
 		if err != nil {
@@ -255,6 +257,7 @@ func main() {
 
 		for i := len(CleanItems) - 1; i >= 0; i-- {
 			post(fmt.Sprintf("\n%v\n\nNyaa link: %v\n\n<a href=\"%v\">Torrent file</a>", CleanItems[i].Title, CleanItems[i].Guid, CleanItems[i].Link), mainConfig.ChatId, mainConfig.BotToken, mainConfig.TopicId)
+			log.Println("Title: ", CleanItems[i].Title)
 			CacheFile.LastUrls = append(CacheFile.LastUrls, CleanItems[i].Guid)
 			if err := writeCache("cache.json", CacheFile); err != nil {
 				log.Println("[ERROR] ", err)
