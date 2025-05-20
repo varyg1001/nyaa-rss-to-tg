@@ -182,7 +182,7 @@ func getRSSFeed(mainConfig MainConfig) (RSS, error) {
 		tls_client.WithClientProfile(profiles.Chrome_124),
 	}
 
-	if len(mainConfig.Proxies) > 1 {
+	if len(mainConfig.Proxies) > 0 {
 		proxy := getRandomProxy(mainConfig.Proxies)
 		options = append(options, tls_client.WithProxyUrl(proxy))
 	}
