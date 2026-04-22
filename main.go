@@ -49,9 +49,21 @@ type MainConfig struct {
 }
 
 type Item struct {
-	Title string `xml:"title"`
-	Link  string `xml:"link"`
-	Guid  string `xml:"guid"`
+	Title    string `xml:"title"`
+	Link     string `xml:"link"`
+	Guid     string `xml:"guid"`
+	Size     string `xml:"size"`
+	Category string `xml:"category"`
+}
+
+type InlineKeyboardButton struct {
+	Text         string `json:"text"`
+	URL          string `json:"url,omitempty"`
+	CallbackData string `json:"callback_data,omitempty"`
+}
+
+type InlineKeyboardMarkup struct {
+	InlineKeyboard [][]InlineKeyboardButton `json:"inline_keyboard"`
 }
 
 type Channel struct {
@@ -64,23 +76,34 @@ type RSS struct {
 
 const telegramAPI = "https://api.telegram.org/bot%s/sendMessage"
 
-func post(message, chatID, token, topicID string) {
+func post(message, chatID, token, topicID string, buttons [][]InlineKeyboardButton) {
 	log := log.New(os.Stdout, "tg: ", log.LstdFlags)
 
 	if message != "" {
 		retries := 0
 		maxRetries := 5
 
+		params := url.Values{}
+		params.Set("text", message)
+		params.Set("chat_id", chatID)
+		if topicID != "" {
+			params.Set("message_thread_id", topicID)
+		}
+		params.Set("parse_mode", "html")
+		params.Set("disable_web_page_preview", "true")
+
+		if len(buttons) > 0 {
+			markup := InlineKeyboardMarkup{InlineKeyboard: buttons}
+			markupJSON, err := json.Marshal(markup)
+			if err != nil {
+				log.Printf("Error marshaling buttons: %v", err)
+			} else {
+				params.Set("reply_markup", string(markupJSON))
+			}
+		}
+
 		for retries < maxRetries {
 			baseURL := fmt.Sprintf(telegramAPI, token)
-			params := url.Values{}
-			params.Set("text", message)
-			params.Set("chat_id", chatID)
-			if topicID != "" {
-				params.Set("message_thread_id", topicID)
-			}
-			params.Set("parse_mode", "html")
-			params.Set("disable_web_page_preview", "true")
 
 			req, err := http.NewRequest("POST", baseURL, strings.NewReader(params.Encode()))
 			if err != nil {
@@ -256,7 +279,24 @@ func main() {
 		}
 
 		for i := len(CleanItems) - 1; i >= 0; i-- {
-			post(fmt.Sprintf("\n%v\n\nNyaa link: %v\n\n<a href=\"%v\">Torrent file</a>", CleanItems[i].Title, CleanItems[i].Guid, CleanItems[i].Link), mainConfig.ChatId, mainConfig.BotToken, mainConfig.TopicId)
+			post(
+				fmt.Sprintf(
+					"\n<b>%v</b>\n\n- <b>Size</b>: %v\n- <b>Category</b>: %v",
+					CleanItems[i].Title,
+					CleanItems[i].Size,
+					CleanItems[i].Category,
+				),
+				mainConfig.ChatId,
+				mainConfig.BotToken,
+				mainConfig.TopicId,
+				[][]InlineKeyboardButton{
+					{
+						{Text: "🔗 View site", URL: CleanItems[i].Guid},
+						{Text: "📥 Torrent file", URL: CleanItems[i].Link},
+					},
+				},
+			)
+
 			log.Println("Title: ", CleanItems[i].Title)
 			CacheFile.LastUrls = append(CacheFile.LastUrls, CleanItems[i].Guid)
 			if err := writeCache("cache.json", CacheFile); err != nil {
