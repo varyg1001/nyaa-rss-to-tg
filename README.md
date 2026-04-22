@@ -24,21 +24,42 @@ GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" .
 
 ### Docker
 
-You can deploy the tool using Docker. [Dockerfile](Dockerfile) is provided in the repository. To build the image, run:
+You can deploy the tool using Docker. A [Dockerfile](Dockerfile) and [docker-compose.yml](docker-compose.yml) are provided in the repository.
+
+#### Docker Compose (Recommended)
+
+1. Prepare the configuration and cache files:
+   ```shell
+   cp config.json.example config.json
+   cp cache.json.example cache.json
+   ```
+2. Edit `config.json` with your settings.
+3. Start the container:
+   ```shell
+   docker compose up -d
+   ```
+
+#### Manual Docker Run
+
+To build the image manually:
 
 ```shell
 docker build -t nyaa-rss:latest .
 ```
 
-```shell
-docker run -it nyaa-rss:latest
-```
+To run it manually:
 
-On linux `docker_run.sh` can be used for auto run. (This also mount cache file.)
+```shell
+docker run -d \
+    --name nyaa-rss \
+    -v $(pwd)/config.json:/app/config.json \
+    -v $(pwd)/cache.json:/app/cache.json \
+    nyaa-rss:latest
+```
 
 ## Usage
 
-Both `config.json` and `cache.json` have to be created, there is example files. With `docker_run.sh` only config have to be created.
+Both `config.json` and `cache.json` have to be created, there is example files.
 
 ### Config
 

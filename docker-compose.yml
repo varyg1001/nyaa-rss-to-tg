@@ -1,0 +1,9 @@
+services:
+  nyaa-rss:
+    build: .
+    image: nyaa-rss-to-tg:latest
+    container_name: nyaa-rss
+    volumes:
+      - ./config.json:/app/config.json
+      - ./cache.json:/app/cache.json
+    restart: unless-stopped
