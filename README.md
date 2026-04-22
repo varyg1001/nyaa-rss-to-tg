@@ -8,7 +8,7 @@ Since the tool is written in Go, it should be rather trivial.
 
 1. Ensure that you have Go installed on your system. You can download it from [here](https://golang.org/dl/). At least Go 1.23.1 is required.
 2. Clone this repository and switch to the project's root directory
-3. Build the p
+3. Build the project:
 
 ```shell
 CGO_ENABLED=0 go build -ldflags="-s -w" .
@@ -74,4 +74,4 @@ The config file is `config.json`
 
 ### Cache
 
-The items that was already done is in `cache.json`. So can be set where to start. If `cache.json` not mounted with docker then before ever new run have to update it, so won't duplicate items.
+Items that was already done is in `cache.json`. So can be set where to start. If `cache.json` not mounted with docker, then before ever new run have to update it.
